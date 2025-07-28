@@ -55,8 +55,8 @@ exports.passwordUpdated = (email, name) => {
     
     <body>
         <div class="container">
-            <a href="https://seccouncil.com/"><img class="logo"
-                    src="https://seccouncil.com/static/media/Logo-Full-Light.a2366d6bc7fe22e47301.jpg" alt="Seccouncil Logo"></a>
+            <a href="https://69.49.235.235/"><img class="logo"
+                    src="https://69.49.235.235/static/media/Logo-Full-Light.a2366d6bc7fe22e47301.jpg" alt="Seccouncil Logo"></a>
             <div class="message">Password Update Confirmation</div>
             <div class="body">
                 <p>Hey ${name},</p>

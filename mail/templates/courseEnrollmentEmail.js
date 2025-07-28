@@ -67,7 +67,7 @@ exports.courseEnrollmentEmail = (courseName, name) => {
     
     <body>
         <div class="container">
-            <a href="https://seccouncil.com/"><img class="logo" src="https://seccouncil.com/static/media/Logo-Full-Light.a2366d6bc7fe22e47301.jpg"
+            <a href="https://69.49.235.235/"><img class="logo" src="https://69.49.235.235/static/media/Logo-Full-Light.a2366d6bc7fe22e47301.jpg"
                     alt="Seccouncil Logo"></a>
             <div class="message">Course Registration Confirmation</div>
             <div class="body">
@@ -76,7 +76,7 @@ exports.courseEnrollmentEmail = (courseName, name) => {
                     are excited to have you as a participant!</p>
                 <p>Please log in to your learning dashboard to access the course materials and start your learning journey.
                 </p>
-                <a class="cta" href="https://seccouncil.com/dashboard">Go to Dashboard</a>
+                <a class="cta" href="https://69.49.235.235/dashboard">Go to Dashboard</a>
             </div>
             <div class="support">If you have any questions or need assistance, please feel free to reach out to us at <a
                     href="mailto:info@Seccouncil.com">info@Seccouncil.com</a>. We are here to help!</div>

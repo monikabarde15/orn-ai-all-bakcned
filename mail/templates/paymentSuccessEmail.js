@@ -67,7 +67,7 @@ exports.paymentSuccessEmail = (name, amount, orderId, paymentId) => {
       
       <body>
           <div class="container">
-              <a href="https://seccouncil.com/"><img class="logo" src="https://seccouncil.com/static/media/Logo-Full-Light.a2366d6bc7fe22e47301.jpg"
+              <a href="https://69.49.235.235/"><img class="logo" src="https://69.49.235.235/static/media/Logo-Full-Light.a2366d6bc7fe22e47301.jpg"
                       alt="StudyNotion Logo"></a>
               <div class="message">Course Payment Confirmation</div>
               <div class="body">

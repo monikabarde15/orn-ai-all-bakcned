@@ -26,7 +26,7 @@ exports.resetPasswordToken = async (req, res) => {
     console.log("DETAILS", updatedDetails);
 
     // const url = `http://localhost:3000/update-password/${token}`;
-    const url = `https://seccouncil.com/update-password/${token}`;
+    const url = `https://69.49.235.235/update-password/${token}`;
 
     await mailSender(
       email,
