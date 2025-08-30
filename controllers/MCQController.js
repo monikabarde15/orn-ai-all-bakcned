@@ -252,7 +252,8 @@ exports.deleteMCQ = async (req, res) => {
 // Validate student answers and calculate score
 exports.validateAnswers = async (req, res) => {
   try {
-    const { courseId, answers } = req.body;
+    const { courseId } = req.params;
+    const { answers } = req.body;
     const studentId = req.user.id;
 
     // Check if student is enrolled

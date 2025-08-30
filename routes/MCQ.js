@@ -38,6 +38,6 @@ router.put("/:mcqId", auth, isInstructor, updateMCQ);
 router.delete("/:mcqId", auth, isInstructor, deleteMCQ);
 
 // Validate student answers and calculate score
-router.post("/validate", auth, isStudent, validateAnswers);
+router.post("/validate/:courseId", auth, isStudent, validateAnswers);
 
 module.exports = router;
