@@ -569,8 +569,7 @@
 // };
 
 // claude update for that one library which not working
-
-const { admin } = require("../config/firebase");
+const admin = require("../config/firebase");
 const User = require("../models/User");
 const Notification = require("../models/Notification");
 
