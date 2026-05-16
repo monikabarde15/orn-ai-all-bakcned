@@ -1,5 +1,5 @@
 node_modules
 serviceAccountKey.json
 firebase-service-account.json
+
 .env
-firebase-service-account.json
