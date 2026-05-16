@@ -11,7 +11,15 @@ const { convertSecondsToDuration } = require("../utils/secToDuration");
 // Function to create a new course
 exports.createCourse = async (req, res) => {
   try {
+    // =========================================
+    // USER ID
+    // =========================================
+
     const userId = req.user.id;
+
+    // =========================================
+    // BODY DATA
+    // =========================================
 
     let {
       courseName,
@@ -24,25 +32,40 @@ exports.createCourse = async (req, res) => {
       instructions: _instructions,
     } = req.body;
 
-    const thumbnail = req.files?.thumbnailImage;
-    const ebook = req.files?.ebook;
+    // =========================================
+    // FILES
+    // =========================================
 
-    // Add error handling for JSON parsing
+    const thumbnail =
+      req.files?.thumbnailImage;
+
+    const ebook =
+      req.files?.ebook;
+
+    // =========================================
+    // PARSE JSON
+    // =========================================
+
     let tag;
     let instructions;
 
     try {
       tag = JSON.parse(_tag);
-      instructions = JSON.parse(_instructions);
+
+      instructions = JSON.parse(
+        _instructions
+      );
     } catch (parseError) {
       return res.status(400).json({
         success: false,
-        message: "Invalid JSON format for tag or instructions",
+        message:
+          "Invalid JSON format",
       });
     }
 
-    console.log("tag", tag);
-    console.log("instructions", instructions);
+    // =========================================
+    // VALIDATION
+    // =========================================
 
     if (
       !courseName ||
@@ -56,92 +79,159 @@ exports.createCourse = async (req, res) => {
     ) {
       return res.status(400).json({
         success: false,
-        message: "All Fields are Mandatory",
+        message:
+          "All Fields are Mandatory",
       });
     }
 
-    if (!status || status === undefined) {
+    // =========================================
+    // DEFAULT STATUS
+    // =========================================
+
+    if (!status) {
       status = "Draft";
     }
 
-    const instructorDetails = await User.findById(userId, {
-      accountType: "Instructor",
-    });
+    // =========================================
+    // ADMIN CHECK
+    // =========================================
 
-    if (!instructorDetails) {
+    const adminDetails =
+      await User.findById(userId);
+
+    if (!adminDetails) {
       return res.status(404).json({
         success: false,
-        message: "Instructor Details Not Found",
+        message:
+          "Admin Details Not Found",
       });
     }
 
-    const categoryDetails = await Category.findById(category);
+    // =========================================
+    // CATEGORY CHECK
+    // =========================================
+
+    const categoryDetails =
+      await Category.findById(
+        category
+      );
+
     if (!categoryDetails) {
       return res.status(404).json({
         success: false,
-        message: "Category Details Not Found",
+        message:
+          "Category Not Found",
       });
     }
 
-    const thumbnailImage = await uploadImageToCloudinary(
-      thumbnail,
-      process.env.FOLDER_NAME
-    );
-    console.log(thumbnailImage);
+    // =========================================
+    // UPLOAD THUMBNAIL
+    // =========================================
 
-    // Upload ebook if provided
-    let ebookUrl = null;
-    if (ebook) {
-      console.log("Ebook file found:", {
-        name: ebook.name,
-        size: ebook.size,
-        mimetype: ebook.mimetype
-      });
-      const ebookPdf = await uploadPdfToLocal(
-        ebook,
-        'course-ebooks'
+    const thumbnailImage =
+      await uploadImageToCloudinary(
+        thumbnail,
+        process.env.FOLDER_NAME
       );
-      ebookUrl = ebookPdf.secure_url;
-      console.log("Ebook URL saved:", ebookUrl);
+
+    // =========================================
+    // UPLOAD EBOOK
+    // =========================================
+
+    let ebookUrl = null;
+
+    if (ebook) {
+      const ebookPdf =
+        await uploadPdfToLocal(
+          ebook,
+          "course-ebooks"
+        );
+
+      ebookUrl =
+        ebookPdf.secure_url;
     }
 
-    const newCourse = await Course.create({
-      courseName,
-      courseDescription,
-      instructor: instructorDetails._id,
-      whatYouWillLearn,
-      price,
-      tag,
-      category: categoryDetails._id,
-      thumbnail: thumbnailImage.secure_url,
-      ebook: ebookUrl,
-      status,
-      instructions,
-    });
+    // =========================================
+    // CREATE COURSE
+    // =========================================
+
+    const newCourse =
+      await Course.create({
+        courseName,
+
+        courseDescription,
+
+        instructor:
+          adminDetails._id,
+
+        whatYouWillLearn,
+
+        price,
+
+        tag,
+
+        category:
+          categoryDetails._id,
+
+        thumbnail:
+          thumbnailImage.secure_url,
+
+        ebook: ebookUrl,
+
+        status,
+
+        instructions,
+      });
+
+    // =========================================
+    // ADD COURSE TO ADMIN
+    // =========================================
 
     await User.findByIdAndUpdate(
-      { _id: instructorDetails._id },
-      { $push: { courses: newCourse._id } },
+      adminDetails._id,
+      {
+        $push: {
+          courses: newCourse._id,
+        },
+      },
       { new: true }
     );
 
-    const categoryDetails2 = await Category.findByIdAndUpdate(
-      { _id: category },
-      { $push: { courses: newCourse._id } },
+    // =========================================
+    // ADD COURSE TO CATEGORY
+    // =========================================
+
+    await Category.findByIdAndUpdate(
+      category,
+      {
+        $push: {
+          courses: newCourse._id,
+        },
+      },
       { new: true }
     );
-    console.log("HERE", categoryDetails2);
 
-    res.status(200).json({
+    // =========================================
+    // RESPONSE
+    // =========================================
+
+    return res.status(200).json({
       success: true,
       data: newCourse,
-      message: "Course Created Successfully",
+      message:
+        "Course Created Successfully",
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({
+    console.error(
+      "CREATE COURSE ERROR:",
+      error
+    );
+
+    return res.status(500).json({
       success: false,
-      message: "Failed to create course",
+      message:
+        "Failed To Create Course",
+
       error: error.message,
     });
   }

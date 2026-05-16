@@ -31,12 +31,14 @@ database.connect();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true })); //for using postman
 app.use(cookieParser());
+
 app.use(
   cors({
-    // origin: "http://localhost:8080",
-    origin: "https://vidyagan-ai-frontend.vercel.app",
-    // origin: "https://vidyagan-ai.com",
-    // origin: "https://seccouncil.com",
+    origin: [
+      "http://localhost:5173",
+      "https://vidyagan-ai-frontend.vercel.app",
+      "https://vidya-merege.vercel.app",
+    ],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })

@@ -149,12 +149,12 @@ const userSchema = new mongoose.Schema(
         ref: "courseProgress",
       },
     ],
-    contactNumber: {
-      type: String,
-      required: true,
-      trim: true,
-      match: /^\+\d{1,4}\d{7,15}$/,
-    },
+  contactNumber: {
+  type: String,
+  required: true,
+  trim: true,
+  match: [/^(\+\d{1,4})?\d{10}$/, "Please enter a valid phone number"],
+},
     // Add FCM token for push notifications
     fcmToken: {
       type: String,

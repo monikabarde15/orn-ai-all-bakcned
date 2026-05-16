@@ -110,81 +110,91 @@ exports.signup = async (req, res) => {
       message: "User registered successfully",
     });
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({
-      success: false,
-      message: "User cannot be registered. Please try again.",
-    });
-  }
+  console.log("Signup Error => ", error);
+
+  return res.status(500).json({
+    success: false,
+    message: error.message,
+    error: error,
+  });
+}
 };
 
 // Login controller for authenticating users
 exports.login = async (req, res) => {
   try {
-    // Get email and password from request body
     const { email, password } = req.body;
+
     console.log("login function");
     console.log(req.body);
-    // Check if email or password is missing
+
+    // Validation
     if (!email || !password) {
-      // Return 400 Bad Request status code with error message
       return res.status(400).json({
         success: false,
-        message: `Please Fill up All the Required Fields`,
+        message: "Please Fill up All the Required Fields",
       });
     }
 
-    // Find user with provided email
-    console.log("Attempting to find user in database...");
+    // Find User
     const user = await User.findOne({ email }).populate("additionalDetails");
-    console.log("Database query result:", user ? "User found" : "User not found");
-    console.log("User details:", user);
 
-    // If user not found with provided email
+    console.log("User => ", user);
+
+    // User Not Found
     if (!user) {
-      // Return 401 Unauthorized status code with error message
       return res.status(401).json({
         success: false,
-        message: `User is not Registered with Us Please SignUp to Continue`,
+        message: "User is not Registered with Us Please SignUp to Continue",
       });
     }
 
-    // Generate JWT token and Compare Password
-    if (await bcrypt.compare(password, user.password)) {
+    // Password Compare
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (isMatch) {
+      // JWT Token
       const token = jwt.sign(
-        { email: user.email, id: user._id, role: user.role },
+        {
+          email: user.email,
+          id: user._id,
+          role: user.accountType,
+        },
         process.env.JWT_SECRET,
         {
           expiresIn: "24h",
         }
       );
 
-      // Save token to user document in database
       user.token = token;
       user.password = undefined;
-      // Set cookie for token and return success response
+
+      // Cookie Options
       const options = {
         expires: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
         httpOnly: true,
       };
-      res.cookie("token", token, options).status(200).json({
+
+      return res.cookie("token", token, options).status(200).json({
         success: true,
         token,
         user,
-        message: `User Login Success`,
+        message: "User Login Success",
       });
+
     } else {
       return res.status(401).json({
         success: false,
-        message: `Password is incorrect`,
+        message: "Password is incorrect",
       });
     }
+
   } catch (error) {
-    console.error(error);
-    // Return 500 Internal Server Error status code with error message
+    console.log("Login Error => ", error);
+
     return res.status(500).json({
       success: false,
-      message: `Login Failure Please Try Again`,
+      message: error.message,
     });
   }
 };
@@ -350,60 +360,48 @@ exports.sendotp = async (req, res) => {
 // Controller for Changing Password
 exports.changePassword = async (req, res) => {
   try {
-    // Get user data from req.user
+
+    console.log(req.body);
+
     const userDetails = await User.findById(req.user.id);
 
-    // Get old password, new password, and confirm new password from req.body
     const { oldPassword, newPassword } = req.body;
 
-    // Validate old password
+    if (!oldPassword || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "All fields are required",
+      });
+    }
+
     const isPasswordMatch = await bcrypt.compare(
       oldPassword,
       userDetails.password
     );
+
     if (!isPasswordMatch) {
-      // If old password does not match, return a 401 (Unauthorized) error
-      return res
-        .status(401)
-        .json({ success: false, message: "The password is incorrect" });
+      return res.status(401).json({
+        success: false,
+        message: "The password is incorrect",
+      });
     }
 
-    // Update password
     const encryptedPassword = await bcrypt.hash(newPassword, 10);
+
     const updatedUserDetails = await User.findByIdAndUpdate(
       req.user.id,
       { password: encryptedPassword },
       { new: true }
     );
 
-    // Send notification email
-    try {
-      const emailResponse = await mailSender(
-        updatedUserDetails.email,
-        "Password for your account has been updated",
-        passwordUpdated(
-          updatedUserDetails.email,
-          `Password updated successfully for ${updatedUserDetails.firstName} ${updatedUserDetails.lastName}`
-        )
-      );
-      console.log("Email sent successfully:", emailResponse.response);
-    } catch (error) {
-      // If there's an error sending the email, log the error and return a 500 (Internal Server Error) error
-      console.error("Error occurred while sending email:", error);
-      return res.status(500).json({
-        success: false,
-        message: "Error occurred while sending email",
-        error: error.message,
-      });
-    }
+    return res.status(200).json({
+      success: true,
+      message: "Password updated successfully",
+    });
 
-    // Return success response
-    return res
-      .status(200)
-      .json({ success: true, message: "Password updated successfully" });
   } catch (error) {
-    // If there's an error updating the password, log the error and return a 500 (Internal Server Error) error
-    console.error("Error occurred while updating password:", error);
+    console.log(error);
+
     return res.status(500).json({
       success: false,
       message: "Error occurred while updating password",

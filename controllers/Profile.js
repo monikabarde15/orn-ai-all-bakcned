@@ -118,32 +118,51 @@ exports.getAllUserDetails = async (req, res) => {
 
 exports.updateDisplayPicture = async (req, res) => {
   try {
-    const displayPicture = req.files.displayPicture
-    const userId = req.user.id
+
+    // check file
+    if (!req.files || !req.files.displayPicture) {
+      return res.status(400).json({
+        success: false,
+        message: "Display picture is required",
+      });
+    }
+
+    const displayPicture = req.files.displayPicture;
+    const userId = req.user.id;
+
+    // upload image
     const image = await uploadImageToCloudinary(
       displayPicture,
-      process.env.FOLDER_NAME,
-      1000,
-      1000
-    )
-    console.log(image)
+      process.env.FOLDER_NAME
+    );
+
+    // update user image
     const updatedProfile = await User.findByIdAndUpdate(
-      { _id: userId },
-      { image: image.secure_url },
-      { new: true }
-    )
-    res.send({
+      userId,
+      {
+        image: image.secure_url,
+      },
+      {
+        new: true,
+      }
+    );
+
+    return res.status(200).json({
       success: true,
-      message: `Image Updated successfully`,
+      message: "Image Updated Successfully",
       data: updatedProfile,
-    })
+    });
+
   } catch (error) {
+
+    console.log("DISPLAY PICTURE ERROR => ", error);
+
     return res.status(500).json({
       success: false,
       message: error.message,
-    })
+    });
   }
-}
+};
 
 exports.getEnrolledCourses = async (req, res) => {
   try {

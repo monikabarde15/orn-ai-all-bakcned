@@ -21,7 +21,7 @@
 
 
 const express = require("express");
-const { createCategory, showAllCategories, deleteCategory } = require("../controllers/Category");
+const { createCategory, showAllCategories, deleteCategory,updateCategory } = require("../controllers/Category");
 const { auth, isAdmin } = require("../middlewares/auth");
 const router = express.Router();
 
@@ -34,4 +34,5 @@ router.get("/showAllCategories", auth, isAdmin, showAllCategories);
 // Route to delete a category by ID
 router.delete("/deleteCategory/:categoryId", auth, isAdmin, deleteCategory);
 
+router.put("/updateCategory/:categoryId",auth, isAdmin,updateCategory);
 module.exports = router;

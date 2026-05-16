@@ -579,86 +579,110 @@ exports.sendNotificationToAll = async (req, res) => {
   try {
     const { title, body, imageUrl } = req.body;
 
+    // VALIDATION
     if (!title || !body) {
       return res.status(400).json({
         success: false,
-        message: "Title and body are required for notifications",
+        message: "Title and body are required",
       });
     }
 
-    // Get all FCM tokens
-    const users = await User.find({ fcmToken: { $exists: true, $ne: null } });
-    const tokens = users.map((user) => user.fcmToken).filter(Boolean);
+    // GET USERS
+    const users = await User.find({});
 
+    console.log("TOTAL USERS =>", users.length);
+
+    // CHECK TOKENS
+    const tokens = users
+      .map((user) => user.fcmToken)
+      .filter(
+        (token) =>
+          token &&
+          token !== null &&
+          token !== undefined &&
+          token !== ""
+      );
+
+    console.log("FCM TOKENS =>", tokens);
+
+    // NO TOKENS
     if (tokens.length === 0) {
-      return res.status(404).json({
+      return res.status(200).json({
         success: false,
-        message: "No registered devices found",
+        message:
+          "No registered devices found. Please login once from frontend and allow notifications.",
       });
     }
 
-    // Prepare notification payload
-    const message = {
-      notification: {
-        title,
-        body,
-      },
-      data: {
-        type: "general",
-        click_action: "FLUTTER_NOTIFICATION_CLICK",
-        ...req.body.data,
-      },
-    };
+    // FIREBASE MESSAGING
+    const messaging = admin.messaging();
 
-    // Add image if provided
-    if (imageUrl) {
-      message.notification.imageUrl = imageUrl;
+    let successCount = 0;
+    let failureCount = 0;
+
+    // SEND ONE BY ONE
+    for (const token of tokens) {
+      try {
+        await messaging.send({
+          token,
+          notification: {
+            title,
+            body,
+            imageUrl: imageUrl || "",
+          },
+          data: {
+            type: "general",
+            click_action: "FLUTTER_NOTIFICATION_CLICK",
+          },
+        });
+
+        successCount++;
+      } catch (err) {
+        console.log("FCM ERROR =>", err.message);
+
+        failureCount++;
+
+        // REMOVE INVALID TOKEN
+        if (
+          err.code ===
+            "messaging/registration-token-not-registered" ||
+          err.code ===
+            "messaging/invalid-registration-token"
+        ) {
+          await User.updateOne(
+            { fcmToken: token },
+            {
+              $unset: {
+                fcmToken: 1,
+              },
+            }
+          );
+        }
+      }
     }
 
-    // Send to multiple devices using compatible method
-    const messaging = admin.messaging();
-    console.log("Messaging object:", messaging);
-
-    // Use send method instead of sendMulticast
-    const batchResponse = await Promise.all(
-      tokens.map((token) =>
-        messaging
-          .send({
-            token: token,
-            notification: message.notification,
-            data: message.data,
-          })
-          .catch((error) => {
-            console.log("Error sending message:", error);
-            return { error };
-          })
-      )
-    );
-
-    // Count successes and failures
-    const successCount = batchResponse.filter((result) => !result.error).length;
-    const failureCount = batchResponse.filter((result) => result.error).length;
-
-    // Save notification history
+    // SAVE HISTORY
     const notification = new Notification({
       title,
       body,
       imageUrl,
-      sentBy: req.user.id, // Add the user ID of the admin sending it
+      sentBy: req.user.id,
       sentTo: "All",
-      successCount: successCount,
-      failureCount: failureCount,
-      data: req.body.data,
+      successCount,
+      failureCount,
     });
+
     await notification.save();
 
     return res.status(200).json({
       success: true,
       message: `Notification sent successfully to ${successCount} devices`,
-      failed: failureCount,
+      successCount,
+      failureCount,
     });
   } catch (error) {
-    console.error("Error sending notification:", error);
+    console.log("SEND ERROR =>", error);
+
     return res.status(500).json({
       success: false,
       message: "Error sending notification",
@@ -802,27 +826,30 @@ exports.getNotificationHistory = async (req, res) => {
 exports.registerFcmToken = async (req, res) => {
   try {
     const { fcmToken } = req.body;
-    const userId = req.user.id; // Assuming user ID is available from auth middleware
+
+    console.log("TOKEN =>", fcmToken);
+    console.log("USER =>", req.user);
 
     if (!fcmToken) {
       return res.status(400).json({
         success: false,
-        message: "FCM token is required",
+        message: "FCM token required",
       });
     }
 
-    // Update user with FCM token
-    await User.findByIdAndUpdate(userId, { fcmToken });
+    await User.findByIdAndUpdate(req.user.id, {
+      fcmToken,
+    });
 
     return res.status(200).json({
       success: true,
-      message: "FCM token registered successfully",
+      message: "FCM token saved successfully",
     });
   } catch (error) {
-    console.error("Error registering FCM token:", error);
+    console.log(error);
+
     return res.status(500).json({
       success: false,
-      message: "Error registering FCM token",
       error: error.message,
     });
   }

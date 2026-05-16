@@ -292,3 +292,40 @@ exports.deleteCategory = async (req, res) => {
 		});
 	}
 };
+// Update category
+exports.updateCategory = async (req, res) => {
+  try {
+    const { categoryId } = req.params;
+    const { name, description } = req.body;
+
+    // check category exists
+    const category = await Category.findById(categoryId);
+
+    if (!category) {
+      return res.status(404).json({
+        success: false,
+        message: "Category not found",
+      });
+    }
+
+    // update values
+    category.name = name || category.name;
+    category.description =
+      description || category.description;
+
+    // save updated category
+    await category.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Category updated successfully",
+      data: category,
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
