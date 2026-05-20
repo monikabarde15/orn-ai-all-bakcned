@@ -1,4 +1,5 @@
 const express = require("express");
+require("dotenv").config();
 const app = express();
 
 const userRoutes = require("./routes/User");
@@ -45,15 +46,24 @@ app.use(
   })
 );
 
-app.use(
-  fileUpload({
-    useTempFiles: true,
-    tempFileDir: "/tmp",
-  })
-);
+
 //cloudinary connection
 cloudinaryConnect();
+app.use(
+  fileUpload({
 
+    useTempFiles: true,
+
+    tempFileDir: "/tmp",
+
+    limits: {
+      fileSize:
+        500 * 1024 * 1024,
+    },
+
+    abortOnLimit: true,
+  })
+)
 //routes
 app.use("/api/v1/auth", userRoutes);
 app.use("/api/v1/profile", profileRoutes);

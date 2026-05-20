@@ -2,7 +2,10 @@ const MCQ = require("../models/MCQ");
 const Course = require("../models/Course");
 const User = require("../models/User");
 const { default: mongoose } = require("mongoose");
-
+const SubSection =
+ require(
+  "../models/SubSection"
+);
 // Create a new MCQ
 exports.createMCQ = async (req, res) => {
   try {
@@ -51,6 +54,28 @@ exports.createMCQ = async (req, res) => {
       subsectionId,
       instructor: instructorId
     });
+   const updatedSubSection =
+  await SubSection.findByIdAndUpdate(
+    subsectionId,
+    {
+      $push: {
+        quizzes: newMCQ._id,
+      },
+    },
+    {
+      new: true,
+    }
+  );
+
+console.log(
+  "UPDATED SUBSECTION",
+  updatedSubSection
+);
+
+console.log(
+  "updatedSubSection",
+  updatedSubSection
+);
 
     res.status(201).json({
       success: true,

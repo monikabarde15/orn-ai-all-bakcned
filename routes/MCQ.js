@@ -1,7 +1,11 @@
-const express = require("express");
-const router = express.Router();
+const express =
+ require("express");
+
+const router =
+ express.Router();
 
 // Import MCQ Controllers
+
 const {
   createMCQ,
   getMCQsByCourse,
@@ -9,35 +13,70 @@ const {
   updateMCQ,
   deleteMCQ,
   validateAnswers
-} = require("../controllers/MCQController");
-
-// Import Middlewares
+} = require(
+ "../controllers/MCQController"
+);
 const {
-  auth,
-  isInstructor,
-  isStudent
-} = require("../middlewares/auth");
+  auth
+} = require(
+ "../middlewares/auth"
+);
 
-// ********************************************************************************************************
-//                                      MCQ routes
-// ********************************************************************************************************
+// ==========================================
+// CREATE MCQ
+// ==========================================
 
-// Create MCQ - Instructor only
-router.post("/create", auth, isInstructor, createMCQ);
+router.post(
+  "/create",
+   auth,
+  createMCQ
+);
 
-// Get MCQs for a course or subsection - Instructor only
-router.get("/course/:courseId/:subsectionId?", auth, isInstructor, getMCQsByCourse);
+// ==========================================
+// GET MCQs
+// ==========================================
 
-// Get MCQs for enrolled students by course or subsection
-router.get("/student/course/:courseId/:subsectionId?", auth, isStudent, getMCQsForStudent);
+router.get(
+  "/course/:courseId/:subsectionId?",
+   auth,
+  getMCQsByCourse
+);
 
-// Update MCQ - Instructor only
-router.put("/:mcqId", auth, isInstructor, updateMCQ);
+router.get(
+  "/student/course/:courseId/:subsectionId?",
+   auth,
+  getMCQsForStudent
+);
 
-// Delete MCQ - Instructor only
-router.delete("/:mcqId", auth, isInstructor, deleteMCQ);
+// ==========================================
+// UPDATE MCQ
+// ==========================================
 
-// Validate student answers and calculate score by course or subsection
-router.post("/validate/:courseId/:subsectionId?", auth, isStudent, validateAnswers);
+router.put(
+  "/:mcqId",
+   auth,
+  updateMCQ
+);
 
-module.exports = router;
+// ==========================================
+// DELETE MCQ
+// ==========================================
+
+router.delete(
+  "/:mcqId",
+   auth,
+  deleteMCQ
+);
+
+// ==========================================
+// VALIDATE ANSWERS
+// ==========================================
+
+router.post(
+  "/validate/:courseId/:subsectionId?",
+   auth,
+  validateAnswers
+);
+
+module.exports =
+ router;

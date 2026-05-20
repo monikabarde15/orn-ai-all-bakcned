@@ -3,6 +3,8 @@ const mongoose = require("mongoose");
 // Define the Courses schema
 const coursesSchema = new mongoose.Schema({
 	courseName: { type: String },
+	subtitle:{type:String},
+	difficulty:{type:String},
 	courseDescription: { type: String },
 	instructor: {
 		type: mongoose.Schema.Types.ObjectId,
@@ -10,8 +12,8 @@ const coursesSchema = new mongoose.Schema({
 		ref: "user",
 	},
 	whatYouWillLearn: {
-		type: String,
-	},
+		type: [String],
+		},
 	courseContent: [
 		{
 			type: mongoose.Schema.Types.ObjectId,
@@ -27,8 +29,11 @@ const coursesSchema = new mongoose.Schema({
 	price: {
 		type: Number,
 	},
-	thumbnail: {
+	thumbnailImage: {
 		type: String,
+	},
+	promotionalVideo:{
+		type:String,
 	},
 	ebook: {
 		type: String, // URL to the PDF file
@@ -52,6 +57,12 @@ const coursesSchema = new mongoose.Schema({
 	instructions: {
 		type: [String],
 	},
+	 faqs: [
+    {
+      question: String,
+      answer: String,
+    },
+  ],
 	status: {
 		type: String,
 		enum: ["Draft", "Published"],

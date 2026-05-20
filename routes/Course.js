@@ -140,7 +140,6 @@ router.post(
 // GET FULL COURSE DETAILS
 router.post(
   "/getFullCourseDetails",
-  auth,
   getFullCourseDetails
 );
 
